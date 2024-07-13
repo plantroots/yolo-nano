@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
+
 # from https://github.com/eriklindernoren/PyTorch-YOLOv3/blob/master/utils/utils.py
 def to_cpu(tensor):
     return tensor.detach().cpu()
@@ -36,10 +37,10 @@ def load_classe_names(classname_path):
     with open(classname_path, "r") as fp:
         class_names = fp.read().split("\n")
     return class_names
-    
+
 
 def ap_per_class(tp, conf, pred_cls, target_cls):
-    """ Compute the average precision, given the recall and precision curves.
+    """Compute the average precision, given the recall and precision curves.
     Source: https://github.com/rafaelpadilla/Object-Detection-Metrics.
     # Arguments
         tp:	True positives (list).
@@ -64,7 +65,7 @@ def ap_per_class(tp, conf, pred_cls, target_cls):
         n_gt = (target_cls == c).sum()  # Number of ground truth objects
         n_p = i.sum()  # Number of predicted objects
 
-        #print(n_p, n_gt)
+        # print(n_p, n_gt)
 
         if n_p == 0 and n_gt == 0:
             continue
@@ -96,7 +97,7 @@ def ap_per_class(tp, conf, pred_cls, target_cls):
 
 
 def compute_ap(recall, precision):
-    """ Compute the average precision, given the recall and precision curves.
+    """Compute the average precision, given the recall and precision curves.
     Code originally from https://github.com/rbgirshick/py-faster-rcnn.
     # Arguments
         recall:	The recall curve (list).
@@ -123,7 +124,7 @@ def compute_ap(recall, precision):
 
 
 def get_batch_statistics(outputs, targets, iou_threshold):
-    """ Compute true positives, predicted scores and predicted labels per sample """
+    """Compute true positives, predicted scores and predicted labels per sample"""
     batch_metrics = []
     for sample_i in range(len(outputs)):
 
@@ -135,7 +136,6 @@ def get_batch_statistics(outputs, targets, iou_threshold):
         pred_scores = output[:, 4]
         pred_labels = output[:, -1]
 
-
         true_positives = np.zeros(pred_boxes.shape[0])
 
         annotations = targets[targets[:, 0] == sample_i][:, 1:]
@@ -144,13 +144,15 @@ def get_batch_statistics(outputs, targets, iou_threshold):
             detected_boxes = []
             target_boxes = annotations[:, 1:]
 
-            for pred_i, (pred_box, pred_label) in enumerate(zip(pred_boxes, pred_labels)):
+            for pred_i, (pred_box, pred_label) in enumerate(
+                zip(pred_boxes, pred_labels)
+            ):
                 # If targets are found break
                 if len(detected_boxes) == len(annotations):
                     break
 
                 # Ignore if label is not one of the target labels
-                
+
                 if pred_label not in target_labels:
                     continue
 
@@ -158,7 +160,7 @@ def get_batch_statistics(outputs, targets, iou_threshold):
                 if iou >= iou_threshold and box_index not in detected_boxes:
                     true_positives[pred_i] = 1
                     detected_boxes += [box_index]
-        #print('tp ...: ', true_positives, pred_scores, pred_labels)
+        # print('tp ...: ', true_positives, pred_scores, pred_labels)
         batch_metrics.append([true_positives, pred_scores, pred_labels])
     return batch_metrics
 
@@ -219,7 +221,7 @@ def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4):
     output = [None for _ in range(len(prediction))]
     for image_i, image_pred in enumerate(prediction):
         # Filter out confidence scores below threshold
-        #print(image_pred[:, 4])
+        # print(image_pred[:, 4])
         image_pred = image_pred[image_pred[:, 4] >= conf_thres]
         # If none are remaining => process next image
         if not image_pred.size(0):
@@ -229,17 +231,23 @@ def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4):
         # Sort by it
         image_pred = image_pred[(-score).argsort()]
         class_confs, class_preds = image_pred[:, 5:].max(1, keepdim=True)
-        detections = torch.cat((image_pred[:, :5], class_confs.float(), class_preds.float()), 1)
+        detections = torch.cat(
+            (image_pred[:, :5], class_confs.float(), class_preds.float()), 1
+        )
         # Perform non-maximum suppression
         keep_boxes = []
         while detections.size(0):
-            large_overlap = bbox_iou(detections[0, :4].unsqueeze(0), detections[:, :4]) > nms_thres
+            large_overlap = (
+                bbox_iou(detections[0, :4].unsqueeze(0), detections[:, :4]) > nms_thres
+            )
             label_match = detections[0, -1] == detections[:, -1]
             # Indices of boxes with lower confidence scores, large IOUs and matching labels
             invalid = large_overlap & label_match
             weights = detections[invalid, 4:5]
             # Merge overlapping bboxes by order of confidence
-            detections[0, :4] = (weights * detections[invalid, :4]).sum(0) / weights.sum()
+            detections[0, :4] = (weights * detections[invalid, :4]).sum(
+                0
+            ) / weights.sum()
             keep_boxes += [detections[0]]
             detections = detections[~invalid]
         if keep_boxes:
@@ -250,14 +258,14 @@ def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4):
 
 def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
 
-    #print(pred_boxes.size(), pred_cls.size(), target.size(), anchors.size())
+    # print(pred_boxes.size(), pred_cls.size(), target.size(), anchors.size())
     pred_boxes = pred_boxes.clone().cpu()
     pred_cls = pred_cls.clone().cpu()
     target = target.clone().cpu()
     anchors = anchors.clone().cpu()
 
-    #ByteTensor = torch.cuda.ByteTensor if pred_boxes.is_cuda else torch.ByteTensor
-    #FloatTensor = torch.cuda.FloatTensor if pred_boxes.is_cuda else torch.FloatTensor
+    # ByteTensor = torch.cuda.ByteTensor if pred_boxes.is_cuda else torch.ByteTensor
+    # FloatTensor = torch.cuda.FloatTensor if pred_boxes.is_cuda else torch.FloatTensor
 
     ByteTensor = torch.ByteTensor
     FloatTensor = torch.FloatTensor
@@ -268,7 +276,7 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
     nG = pred_boxes.size(2)
 
     # print(nB, nA, nC, nG)
-    
+
     # Output tensors
     obj_mask = ByteTensor(nB, nA, nG, nG).fill_(0)
     noobj_mask = ByteTensor(nB, nA, nG, nG).fill_(1)
@@ -286,10 +294,10 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
     gwh = target_boxes[:, 2:]
     # Get anchors with best iou
     ious = torch.stack([bbox_wh_iou(anchor, gwh) for anchor in anchors])
-    #print(ious.size(), gwh.size(), target.size())
+    # print(ious.size(), gwh.size(), target.size())
 
     best_ious, best_n = ious.max(0)
-    #print(best_ious.size(), best_n.size())
+    # print(best_ious.size(), best_n.size())
 
     # Separate target values
     b, target_labels = target[:, :2].long().t()
@@ -304,8 +312,8 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
 
     # Set noobj mask to zero where iou exceeds ignore threshold
     for i, anchor_ious in enumerate(ious.t()):
-        #print(noobj_mask.size())
-        #print(b[i], anchor_ious>ignore_thres, gj[i], gi[i])
+        # print(noobj_mask.size())
+        # print(b[i], anchor_ious>ignore_thres, gj[i], gi[i])
         noobj_mask[b[i], anchor_ious > ignore_thres, gj[i], gi[i]] = 0
 
     # Coordinates
@@ -315,13 +323,17 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
     tw[b, best_n, gj, gi] = torch.log(gw / anchors[best_n][:, 0] + 1e-16)
     th[b, best_n, gj, gi] = torch.log(gh / anchors[best_n][:, 1] + 1e-16)
 
-    #print(tw[b,best_n, gj, gi])
+    # print(tw[b,best_n, gj, gi])
 
     # One-hot encoding of label
     tcls[b, best_n, gj, gi, target_labels] = 1
     # Compute label correctness and iou at best anchor
-    class_mask[b, best_n, gj, gi] = (pred_cls[b, best_n, gj, gi].argmax(-1) == target_labels).float()
-    iou_scores[b, best_n, gj, gi] = bbox_iou(pred_boxes[b, best_n, gj, gi], target_boxes, x1y1x2y2=False)
+    class_mask[b, best_n, gj, gi] = (
+        pred_cls[b, best_n, gj, gi].argmax(-1) == target_labels
+    ).float()
+    iou_scores[b, best_n, gj, gi] = bbox_iou(
+        pred_boxes[b, best_n, gj, gi], target_boxes, x1y1x2y2=False
+    )
 
     tconf = obj_mask.float()
 
@@ -337,5 +349,3 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
     tconf = tconf.cuda()
 
     return iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf
-
-

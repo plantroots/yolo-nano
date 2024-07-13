@@ -8,15 +8,19 @@ def conv1x1(input_channels, output_channels, stride=1, bn=True):
     if bn == True:
         return nn.Sequential(
             nn.Conv2d(
-                input_channels, output_channels, kernel_size=1,
-                stride=stride, bias=False),
+                input_channels,
+                output_channels,
+                kernel_size=1,
+                stride=stride,
+                bias=False,
+            ),
             nn.BatchNorm2d(output_channels),
-            nn.ReLU6(inplace=True)
+            nn.ReLU6(inplace=True),
         )
     else:
         return nn.Conv2d(
-                input_channels, output_channels, kernel_size=1,
-                stride=stride, bias=False)
+            input_channels, output_channels, kernel_size=1, stride=stride, bias=False
+        )
 
 
 def conv3x3(input_channels, output_channels, stride=1, bn=True):
@@ -24,36 +28,62 @@ def conv3x3(input_channels, output_channels, stride=1, bn=True):
     if bn == True:
         return nn.Sequential(
             nn.Conv2d(
-                input_channels, output_channels, kernel_size=3,
-                stride=stride, padding=1, bias=False),
+                input_channels,
+                output_channels,
+                kernel_size=3,
+                stride=stride,
+                padding=1,
+                bias=False,
+            ),
             nn.BatchNorm2d(output_channels),
-            nn.ReLU6(inplace=True)
+            nn.ReLU6(inplace=True),
         )
     else:
         nn.Conv2d(
-                input_channels, output_channels, kernel_size=3,
-                stride=stride, padding=1, bias=False)
+            input_channels,
+            output_channels,
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            bias=False,
+        )
+
 
 def sepconv3x3(input_channels, output_channels, stride=1, expand_ratio=1):
     return nn.Sequential(
         # pw
         nn.Conv2d(
-            input_channels, input_channels * expand_ratio,
-            kernel_size=1, stride=1, bias=False),
+            input_channels,
+            input_channels * expand_ratio,
+            kernel_size=1,
+            stride=1,
+            bias=False,
+        ),
         nn.BatchNorm2d(input_channels * expand_ratio),
         nn.ReLU6(inplace=True),
         # dw
         nn.Conv2d(
-            input_channels * expand_ratio, input_channels * expand_ratio, kernel_size=3, 
-            stride=stride, padding=1, groups=input_channels * expand_ratio, bias=False),
+            input_channels * expand_ratio,
+            input_channels * expand_ratio,
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            groups=input_channels * expand_ratio,
+            bias=False,
+        ),
         nn.BatchNorm2d(input_channels * expand_ratio),
         nn.ReLU6(inplace=True),
         # pw-linear
         nn.Conv2d(
-            input_channels * expand_ratio, output_channels,
-            kernel_size=1, stride=1, bias=False),
-        nn.BatchNorm2d(output_channels)
+            input_channels * expand_ratio,
+            output_channels,
+            kernel_size=1,
+            stride=1,
+            bias=False,
+        ),
+        nn.BatchNorm2d(output_channels),
     )
+
 
 class EP(nn.Module):
     def __init__(self, input_channels, output_channels, stride=1):
@@ -64,12 +94,13 @@ class EP(nn.Module):
         self.use_res_connect = self.stride == 1 and input_channels == output_channels
 
         self.sepconv = sepconv3x3(input_channels, output_channels, stride=stride)
-        
+
     def forward(self, x):
         if self.use_res_connect:
             return x + self.sepconv(x)
-        
+
         return self.sepconv(x)
+
 
 class PEP(nn.Module):
     def __init__(self, input_channels, output_channels, x, stride=1):
@@ -81,8 +112,8 @@ class PEP(nn.Module):
 
         self.conv = conv1x1(input_channels, x)
         self.sepconv = sepconv3x3(x, output_channels, stride=stride)
-        
-    def forward(self, x):        
+
+    def forward(self, x):
         out = self.conv(x)
         out = self.sepconv(out)
         if self.use_res_connect:
@@ -103,7 +134,7 @@ class FCA(nn.Module):
             nn.Linear(channels, hidden_channels, bias=False),
             nn.ReLU6(inplace=True),
             nn.Linear(hidden_channels, channels, bias=False),
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
     def forward(self, x):
@@ -113,6 +144,7 @@ class FCA(nn.Module):
         out = x * out.expand_as(x)
         return out
 
+
 # From https://github.com/eriklindernoren/PyTorch-YOLOv3
 class YOLOLayer(nn.Module):
     # detection layer
@@ -121,7 +153,7 @@ class YOLOLayer(nn.Module):
         self.anchors = anchors
         self.num_anchors = len(anchors)
         self.num_classes = num_classes
-        self.ignore_thres = .5
+        self.ignore_thres = 0.5
         self.mse_loss = nn.MSELoss()
         self.bce_loss = nn.BCELoss()
         self.obj_scale = 1
@@ -137,8 +169,12 @@ class YOLOLayer(nn.Module):
         self.stride = self.img_dim / self.grid_size
         # Calculate offsets for each grid
         self.grid_x = torch.arange(g).repeat(g, 1).view([1, 1, g, g]).type(FloatTensor)
-        self.grid_y = torch.arange(g).repeat(g, 1).t().view([1, 1, g, g]).type(FloatTensor)
-        self.scaled_anchors = FloatTensor([(a_w / self.stride, a_h / self.stride) for a_w, a_h in self.anchors])
+        self.grid_y = (
+            torch.arange(g).repeat(g, 1).t().view([1, 1, g, g]).type(FloatTensor)
+        )
+        self.scaled_anchors = FloatTensor(
+            [(a_w / self.stride, a_h / self.stride) for a_w, a_h in self.anchors]
+        )
         self.anchor_w = self.scaled_anchors[:, 0:1].view((1, self.num_anchors, 1, 1))
         self.anchor_h = self.scaled_anchors[:, 1:2].view((1, self.num_anchors, 1, 1))
 
@@ -153,17 +189,23 @@ class YOLOLayer(nn.Module):
         grid_size = x.size(2)
 
         prediction = (
-            x.view(num_samples, self.num_anchors, self.num_classes+5, grid_size, grid_size)
-            .permute(0,1,3,4,2)
+            x.view(
+                num_samples,
+                self.num_anchors,
+                self.num_classes + 5,
+                grid_size,
+                grid_size,
+            )
+            .permute(0, 1, 3, 4, 2)
             .contiguous()
         )
 
-        x = torch.sigmoid(prediction[..., 0]) # center x
-        y = torch.sigmoid(prediction[..., 1]) # center y
-        w = prediction[..., 2] # width
-        h = prediction[..., 3] # Height
-        pred_conf = torch.sigmoid(prediction[..., 4]) # Conf
-        pred_cls = torch.sigmoid(prediction[..., 5:]) # Cls Pred
+        x = torch.sigmoid(prediction[..., 0])  # center x
+        y = torch.sigmoid(prediction[..., 1])  # center y
+        w = prediction[..., 2]  # width
+        h = prediction[..., 3]  # Height
+        pred_conf = torch.sigmoid(prediction[..., 4])  # Conf
+        pred_cls = torch.sigmoid(prediction[..., 5:])  # Cls Pred
 
         if grid_size != self.grid_size:
             self.compute_grid_offsets(grid_size, cuda=x.is_cuda)
@@ -174,8 +216,8 @@ class YOLOLayer(nn.Module):
         pred_boxes[..., 1] = y.data + self.grid_y
         pred_boxes[..., 2] = torch.exp(w.data) * self.anchor_w
         pred_boxes[..., 3] = torch.exp(h.data) * self.anchor_h
-        #print(pred_boxes.size())
-        #print(pred_boxes.view(num_samples, -1, 4).size())
+        # print(pred_boxes.size())
+        # print(pred_boxes.view(num_samples, -1, 4).size())
 
         output = torch.cat(
             (
@@ -189,7 +231,18 @@ class YOLOLayer(nn.Module):
         if targets is None:
             return output, 0
         else:
-            iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf = build_targets(
+            (
+                iou_scores,
+                class_mask,
+                obj_mask,
+                noobj_mask,
+                tx,
+                ty,
+                tw,
+                th,
+                tcls,
+                tconf,
+            ) = build_targets(
                 pred_boxes=pred_boxes,
                 pred_cls=pred_cls,
                 target=targets,
@@ -202,10 +255,12 @@ class YOLOLayer(nn.Module):
             loss_y = self.mse_loss(y[obj_mask], ty[obj_mask])
             loss_w = self.mse_loss(w[obj_mask], tw[obj_mask])
             loss_h = self.mse_loss(h[obj_mask], th[obj_mask])
-            #print(pred_conf[obj_mask], tconf[obj_mask])
+            # print(pred_conf[obj_mask], tconf[obj_mask])
             loss_conf_obj = self.bce_loss(pred_conf[obj_mask], tconf[obj_mask])
             loss_conf_noobj = self.bce_loss(pred_conf[noobj_mask], tconf[noobj_mask])
-            loss_conf = self.obj_scale * loss_conf_obj + self.noobj_scale * loss_conf_noobj
+            loss_conf = (
+                self.obj_scale * loss_conf_obj + self.noobj_scale * loss_conf_noobj
+            )
             loss_cls = self.bce_loss(pred_cls[obj_mask], tcls[obj_mask])
             total_loss = loss_x + loss_y + loss_w + loss_h + loss_conf + loss_cls
 

@@ -1,6 +1,6 @@
 import torch
-from .transforms import (
-    Compose, PadToSquare, RandomCrop, RandomHorizontalFlip, ToTensor)
+from .transforms import Compose, PadToSquare, RandomCrop, RandomHorizontalFlip, ToTensor
+
 
 def get_train_transforms(opt):
     trasforms = []

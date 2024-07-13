@@ -5,7 +5,8 @@ import torch
 from PIL import Image
 
 from torchvision.transforms import functional as F
-from . import bounding_box 
+from . import bounding_box
+
 
 class Compose(object):
     """Composes several transforms together.
@@ -29,17 +30,17 @@ class Compose(object):
         return img, bboxes
 
     def __repr__(self):
-        format_string = self.__class__.__name__ + '('
+        format_string = self.__class__.__name__ + "("
         for t in self.transforms:
-            format_string += '\n'
-            format_string += '    {0}'.format(t)
-        format_string += '\n)'
+            format_string += "\n"
+            format_string += "    {0}".format(t)
+        format_string += "\n)"
         return format_string
 
 
 class RandomHorizontalFlip(object):
-    """horizontally flip the image and bounding boxes
-    """
+    """horizontally flip the image and bounding boxes"""
+
     def __init__(self, p=0.5):
         self.p = p
 
@@ -51,8 +52,8 @@ class RandomHorizontalFlip(object):
 
 
 class Resize(object):
-    """Resize image to a desired size
-    """
+    """Resize image to a desired size"""
+
     def __init__(self, size, interpolation=Image.BILINEAR):
         assert isinstance(size, int) or (isinstance(size, Iterable) and len(size) == 2)
         self.size = size
@@ -63,11 +64,11 @@ class Resize(object):
 
 
 class PadToSquare(object):
-    """Pad image to square shape and adjust the bounding box coordinates
-    """
-    def __init__(self, fill=0, padding_mode='constant'):
+    """Pad image to square shape and adjust the bounding box coordinates"""
+
+    def __init__(self, fill=0, padding_mode="constant"):
         assert isinstance(fill, (numbers.Number, str, tuple))
-        assert padding_mode in ['constant', 'edge', 'reflect', 'symmetric']
+        assert padding_mode in ["constant", "edge", "reflect", "symmetric"]
         self.fill = fill
         self.padding_mode = padding_mode
 
@@ -75,10 +76,12 @@ class PadToSquare(object):
         w, h = image.size
         if w == h:
             return image, bboxes
-        
+
         dim_diff = abs(w - h)
         padding_1, padding_2 = dim_diff // 2, dim_diff - dim_diff // 2
-        padding = (0, padding_1, 0, padding_2) if w > h else (padding_1, 0, padding_2, 0)
+        padding = (
+            (0, padding_1, 0, padding_2) if w > h else (padding_1, 0, padding_2, 0)
+        )
         image = F.pad(image, padding, fill=self.fill, padding_mode=self.padding_mode)
         bboxes = bboxes.pad(padding)
         return image, bboxes
@@ -86,8 +89,8 @@ class PadToSquare(object):
 
 class RandomCrop(object):
     def __init__(
-        self, size, padding=None, pad_if_needed=False,
-        fill=0, padding_mode='constant'):
+        self, size, padding=None, pad_if_needed=False, fill=0, padding_mode="constant"
+    ):
 
         if isinstance(size, numbers.Number):
             self.size = (int(size), int(size))
@@ -116,20 +119,24 @@ class RandomCrop(object):
 
         # pad the width if needed
         if self.pad_if_needed and image.size[0] < self.size[1]:
-            image = F.pad(image, (self.size[1] - image.size[0], 0), self.fill, self.padding_mode)
+            image = F.pad(
+                image, (self.size[1] - image.size[0], 0), self.fill, self.padding_mode
+            )
             bboxes = bboxes.pad((self.size[1] - image.size[0], 0))
         # pad the height if needed
         if self.pad_if_needed and image.size[1] < self.size[0]:
-            image = F.pad(image, (0, self.size[0] - image.size[1]), self.fill, self.padding_mode)
+            image = F.pad(
+                image, (0, self.size[0] - image.size[1]), self.fill, self.padding_mode
+            )
             bboxes = bboxes.pad((0, self.size[0] - image.size[1]))
-        
+
         i, j, h, w = self.get_params(image, self.size)
-        return F.crop(image, i, j, h, w), bboxes.crop((i, j, i+h, j+w))
+        return F.crop(image, i, j, h, w), bboxes.crop((i, j, i + h, j + w))
 
 
 class ToTensor(object):
     def __init__(self):
         pass
-    
+
     def __call__(self, image, bboxes):
         return F.to_tensor(image), bboxes.to_tensor()
