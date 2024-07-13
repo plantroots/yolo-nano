@@ -1,9 +1,11 @@
+# TODO: check pad2square visually for the boxes as well
+
 import random
 import math
 import numbers
 import torch
-from PIL import Image
 
+from PIL import Image
 from torchvision.transforms import functional as F
 from . import bounding_box
 
