@@ -1,4 +1,4 @@
-# TODO: swich to a normal pytorch dataset format with a classic YOLO bbox format
+# TODO: create script for conversion of bbox format labelImg YOLO (or other) to COCO
 
 import os
 import time
