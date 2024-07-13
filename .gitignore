@@ -1,3 +1,4 @@
+.vscode
 datasets/*
 !datasets/coco.names
 checkpoints/*

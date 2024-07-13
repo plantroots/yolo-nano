@@ -8,6 +8,7 @@ def get_train_dataset(opt, transforms=None):
         dataset = COCO(
             opt.dataset_path,
             os.path.join(opt.annotation_path, "instances_train2017.json"),
+            # opt.annotation_path,
             subset="train",
             image_size=opt.image_size,
             multi_scale=(not opt.no_multi_scale),
@@ -28,6 +29,7 @@ def get_val_dataset(opt, transforms=None):
         dataset = COCO(
             opt.dataset_path,
             os.path.join(opt.annotation_path, "instances_val2017.json"),
+            # opt.annotation_path,
             subset="val",
             image_size=opt.image_size,
             multi_scale=False,

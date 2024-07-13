@@ -1,3 +1,5 @@
+# TODO: swich to a normal pytorch dataset format with a classic YOLO bbox format
+
 import os
 import time
 import json
