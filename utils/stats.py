@@ -36,6 +36,8 @@ def xywh2xyxy(x):
 def load_classe_names(classname_path):
     with open(classname_path, "r") as fp:
         class_names = fp.read().split("\n")
+        # TODO: CHECK THIS
+        # class_names = [line.strip() for line in fp if line.strip()]
     return class_names
 
 

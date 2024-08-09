@@ -49,7 +49,8 @@ def val(model, dataloader, epoch, opt, val_logger, visualizer=None):
             visualizer.plot_ground_truth(
                 images.cpu(), targets.cpu(), env="main"
             )  # plot ground truth
-
+    # TODO: CHECK CRASH
+    # Crashes at the first epochs when it doesn't have any detections; FIX THIS
     true_positives, pred_scores, pred_labels = [
         np.concatenate(x, 0) for x in list(zip(*sample_matrics))
     ]
@@ -77,5 +78,6 @@ def val(model, dataloader, epoch, opt, val_logger, visualizer=None):
     metric_table.table_data = metric_table_data
     val_logger.write("{}\n\n\n".format(metric_table.table))
 
-    if visualizer is not None:
-        vis.plot_metrics(metric_table_data, batches_done, env="main")
+    # TODO: CHECK CRASH
+    # if visualizer is not None:
+    #     vis.plot_metrics(metric_table_data, batches_done, env="main")

@@ -1,0 +1,5 @@
+yolo_nano_exact_env:
+
+pycocotools==2.0 not found
+conda install -c conda-forge pycocotools
+conda install openssl=1.1.1
