@@ -1,4 +1,5 @@
-# TODO: create script for conversion of bbox format labelImg YOLO (or other) to COCO
+# TODO: Try to annotate directly in the COCO dataset tool --> FiftyOne
+# https://docs.voxel51.com/
 
 import os
 import time
