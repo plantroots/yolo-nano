@@ -53,4 +53,11 @@ To train on COCO dataset:
 ```bash
 python3 main.py --dataset_path datasets/coco/images --annotation_path datasets/coco/annotation/instances_train2017.json
                 --dataset coco --lr 0.0001 --conf_thres 0.8 --nms_thres 0.5
+
+```
+
+```bash
+
+python3 main.py --dataset_path /home/plantroot/Datasets/voc2coco/transformed/images --annotation_path /home/plantroot/Datasets/voc2coco/transformed/annotation --dataset coco --lr 0.0001 --conf_thres 0.8 --nms_thres 0.5 --batch_size 16 --classname_path /home/plantroot/Datasets/voc2coco/transformed/coco.names --num_classes 2 --val_interval 20 --num_epochs 200
+
 ```

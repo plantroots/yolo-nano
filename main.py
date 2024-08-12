@@ -1,12 +1,14 @@
 # TODO: Try to annotate directly in the COCO dataset tool --> FiftyOne
 # https://docs.voxel51.com/
-# TODO: Plot better metrics for validation
+# TODO: Plot better metrics for validation (Precision, Recall, F1, mAP)
 # TODO: Check other visualization tools or expand on visdom
 # TODO: Explore test_set method
 # TODO: Check if the model can be exported to ONNX
 # TODO: Check if the ONNX model can be converted to TF_LITE and can run on raspberry pi
 # TODO: Investigate the num_class bug
 # TODO: Make code robust for when there are no detections on the validation set
+# TODO: Implement save checkpoint on keyboard interupt
+# TODO: Add image transalation during trainign as well to de-localize as much as possible
 
 import os
 import time
