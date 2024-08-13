@@ -9,6 +9,7 @@
 # TODO: Make code robust for when there are no detections on the validation set
 # TODO: Implement save checkpoint on keyboard interupt
 # TODO: Add image transalation during trainign as well to de-localize as much as possible
+# TODO: Implement warm-up epocs before validation starts occuring
 
 import os
 import time
