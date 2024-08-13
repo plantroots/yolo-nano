@@ -8,7 +8,7 @@ from PIL import Image
 from models.yolo_nano import YOLONano
 
 IMAGE_PATH = "/home/plantroot/temp/partially_1_frame_00000.jpg"
-CONFIDENCE_THRESHOLD = 0.5
+CONFIDENCE_THRESHOLD = 0.2
 
 ######################
 ###   LOAD MODEL   ###
@@ -59,41 +59,21 @@ predictions = output_squeezed[output_squeezed[:, 4] > CONFIDENCE_THRESHOLD]
 # Load your image (replace 'image_path' with the actual image file path)
 image = cv2.imread(IMAGE_PATH)
 
-# Convert the image to RGB
-image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
 # Draw each bounding box
 for prediction in predictions:
-    cx, cy, w, h = prediction[0:4]
+    # Extract values from the tensor
+    x_center, y_center, width, height = prediction[0:4]
 
-    # Convert center (cx, cy) to top-left corner (x, y)
-    x = int((cx - w / 2) * image.shape[1])
-    y = int((cy - h / 2) * image.shape[0])
-    width = int(w * image.shape[1])
-    height = int(h * image.shape[0])
+    # Calculate top-left and bottom-right corners
+    x_min = int(x_center - width / 2)
+    y_min = int(y_center - height / 2)
+    x_max = int(x_center + width / 2)
+    y_max = int(y_center + height / 2)
 
-    # Draw the rectangle (bounding box)
-    cv2.rectangle(image, (x, y), (x + width, y + height), (255, 0, 0), 2)
+    # Draw the bounding box on the image
+    cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
 
-    # Optionally: Add the confidence score on top of the box
-    score = prediction[4]
-    cv2.putText(
-        image,
-        f"{score:.2f}",
-        (x, y - 10),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.5,
-        (255, 0, 0),
-        2,
-    )
-
-    # Convert back to BGR to save or display in OpenCV
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-
-    # Display the image with bounding boxes
-    cv2.imshow("Object Detection", image)
+    # Display the image
+    cv2.imshow("Image with Bounding Box", image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
-    # Save the image if needed
-    cv2.imwrite("output_image.jpg", image)
