@@ -1,3 +1,6 @@
+# TODO: check with a large image and see how the boxes translate
+# of if they need scaling to the original size VS newtork input size
+
 import cv2
 
 import torch
@@ -38,6 +41,7 @@ transform = transforms.Compose(
         transforms.Resize((416, 416)),
         # Convert image to tensor
         transforms.ToTensor(),
+        # TODO: Investigate if the model has normalization during training and see if we need it here
         # Normalize based on ImageNet dataset
         # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
@@ -73,7 +77,7 @@ print(len(predictions))
 for prediction in predictions:
     prediction = np.array(prediction)
     print(prediction)
-    # Extract values from the tensor
+    # COCO bbox format for predictions
     xmin, ymin, width, height = prediction[:4]
     xmin, ymin, width, height = int(xmin), int(ymin), int(width), int(height)
 
@@ -90,6 +94,4 @@ for prediction in predictions:
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-
-### TEST ###
-# cv2.rectangle(image, (320, 240), (640, 480), (255, 0, 0), 2)
+    print(image.shape)
