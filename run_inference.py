@@ -14,9 +14,6 @@ np.set_printoptions(suppress=True)
 
 IMAGE_PATH = "/home/plantroot/temp/opened_10_frame_00009.jpg"
 CONFIDENCE_THRESHOLD = 0.95
-# image = cv2.imread(IMAGE_PATH)
-# gt = [47, 244, 82, 140]
-
 
 ######################
 ###   LOAD MODEL   ###
@@ -68,9 +65,6 @@ predictions = output_squeezed[output_squeezed[:, 4] > CONFIDENCE_THRESHOLD]
 # Load your image (replace 'image_path' with the actual image file path)
 image = cv2.imread(IMAGE_PATH)
 
-# Load original image for correct scaling
-# original_height, original_width = image.shape[:2]
-
 # Draw each bounding box
 print(len(predictions))
 
@@ -95,3 +89,23 @@ for prediction in predictions:
     cv2.destroyAllWindows()
 
     print(image.shape)
+
+
+# # CHECK Ground Truths
+# image = cv2.imread(IMAGE_PATH)
+# gt = [47, 244, 82, 140]
+
+# xmin, ymin, w, h = gt
+
+# xmax = xmin + w
+# ymax = ymin + h
+
+# top_left_corner = (xmin, ymin)
+# bottom_right_corner = (xmax, ymax)
+
+# cv2.rectangle(image, top_left_corner, bottom_right_corner, (255, 0, 0), 2)
+
+# # Display the image
+# cv2.imshow("Image with Bounding Box", image)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
