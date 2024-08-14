@@ -1,14 +1,19 @@
-import torch
-import torch.nn as nn
-import numpy as np
 import cv2
 
-from torchvision import models, transforms
+import torch
+import numpy as np
+
 from PIL import Image
+from torchvision import transforms
 from models.yolo_nano import YOLONano
 
-IMAGE_PATH = "/home/plantroot/temp/partially_1_frame_00000.jpg"
-CONFIDENCE_THRESHOLD = 0.2
+np.set_printoptions(suppress=True)
+
+IMAGE_PATH = "/home/plantroot/temp/opened_10_frame_00009.jpg"
+CONFIDENCE_THRESHOLD = 0.95
+# image = cv2.imread(IMAGE_PATH)
+# gt = [47, 244, 82, 140]
+
 
 ######################
 ###   LOAD MODEL   ###
@@ -22,9 +27,9 @@ state_dict = checkpoint["state_dict"]
 model.load_state_dict(state_dict)
 model.eval()
 
-######################
-###   INFERENCE    ###
-######################
+#####################
+##   INFERENCE    ###
+#####################
 
 image = Image.open(IMAGE_PATH)
 transform = transforms.Compose(
@@ -34,7 +39,7 @@ transform = transforms.Compose(
         # Convert image to tensor
         transforms.ToTensor(),
         # Normalize based on ImageNet dataset
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
 )
 
@@ -59,21 +64,32 @@ predictions = output_squeezed[output_squeezed[:, 4] > CONFIDENCE_THRESHOLD]
 # Load your image (replace 'image_path' with the actual image file path)
 image = cv2.imread(IMAGE_PATH)
 
+# Load original image for correct scaling
+# original_height, original_width = image.shape[:2]
+
 # Draw each bounding box
+print(len(predictions))
+
 for prediction in predictions:
+    prediction = np.array(prediction)
+    print(prediction)
     # Extract values from the tensor
-    x_center, y_center, width, height = prediction[0:4]
+    xmin, ymin, width, height = prediction[:4]
+    xmin, ymin, width, height = int(xmin), int(ymin), int(width), int(height)
 
-    # Calculate top-left and bottom-right corners
-    x_min = int(x_center - width / 2)
-    y_min = int(y_center - height / 2)
-    x_max = int(x_center + width / 2)
-    y_max = int(y_center + height / 2)
+    xmax = xmin + width
+    ymax = ymin + height
 
-    # Draw the bounding box on the image
-    cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+    top_left_corner = (xmin, ymin)
+    bottom_right_corner = (xmax, ymax)
+
+    cv2.rectangle(image, top_left_corner, bottom_right_corner, (255, 0, 0), 2)
 
     # Display the image
     cv2.imshow("Image with Bounding Box", image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
+### TEST ###
+# cv2.rectangle(image, (320, 240), (640, 480), (255, 0, 0), 2)
