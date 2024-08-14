@@ -62,15 +62,12 @@ output_squeezed = OUTPUT.squeeze(0)
 # Filter predictions with a high enough confidence score (e.g., > 0.5)
 predictions = output_squeezed[output_squeezed[:, 4] > CONFIDENCE_THRESHOLD]
 
-# Load your image (replace 'image_path' with the actual image file path)
 image = cv2.imread(IMAGE_PATH)
 
 # Draw each bounding box
-print(len(predictions))
-
 for prediction in predictions:
     prediction = np.array(prediction)
-    print(prediction)
+
     # COCO bbox format for predictions
     xmin, ymin, width, height = prediction[:4]
     xmin, ymin, width, height = int(xmin), int(ymin), int(width), int(height)
